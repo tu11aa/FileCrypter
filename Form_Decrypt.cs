@@ -14,6 +14,7 @@ namespace Project1
         private RSAParameters m_PrivKey;
         private string m_filePath = string.Empty;
         private string m_fileName = string.Empty;
+        private bool m_isValidKey = false;
         public static readonly string ms_prefix = "decrypted_";
         private static readonly string ms_keypath = "\\Keys\\keyFilePath.xml";
 
@@ -57,6 +58,11 @@ namespace Project1
                 MessageBox.Show("Please select private key.");
                 return;
             }
+            if (!m_isValidKey)
+            {
+                MessageBox.Show("Please select valid private key.");
+                return;
+            }
 
             string decyptedFile = m_filePath + "\\" + ms_prefix + m_fileName;
 
@@ -67,20 +73,17 @@ namespace Project1
 
         private void onButtonSelectPrivKeyClick(object sender, EventArgs e)
         {
-            if (m_filePath.Length == 0)
-            {
-                MessageBox.Show("Please select file to decrypt!!!");
-                return;
-            }
-
             OpenFileDialog ofd = new OpenFileDialog
             {
-                DefaultExt = ".xml"
+                DefaultExt = ".xml",
+                Filter = "XML files (*.xml)|*.xml"
             };
 
+            string keyPath = string.Empty;
             DialogResult result = ofd.ShowDialog();
             if (result == DialogResult.OK)
             {
+                keyPath = ofd.FileName;
                 labelSelectPrivKey.Text = "Selected Private Key file: " + ofd.FileName;
             }
             else
@@ -89,7 +92,7 @@ namespace Project1
             }
 
             XmlSerializer serializer = new XmlSerializer(typeof(RSAParameters));
-            using (StreamReader reader = new StreamReader(m_filePath + "\\private_key.xml"))
+            using (StreamReader reader = new StreamReader(keyPath))
             {
                 m_PrivKey = (RSAParameters)serializer.Deserialize(reader);
             }
@@ -116,6 +119,7 @@ namespace Project1
             else
             {
                 m_aesKey = _RSA.Decrypt(keyData.Kx, m_PrivKey);
+                m_isValidKey = true;
             }
         }
     }
